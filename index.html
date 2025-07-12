@@ -94,11 +94,20 @@
   <h2>Hello, <span id="displayName"></span>!</h2>
   <div id="user-coins" style="margin-top: 10px; font-weight: bold;">Loading coins...</div>
   <button onclick="watchAdAndEarn()">🎥 Watch & Earn</button>
+  <button onclick="showSpinWheel()">🎰 Spin & Earn</button>
+  <button onclick="logout()">🚪 Logout</button>
   <div class="rewards-grid" id="rewardsGrid"></div>
   <div class="channel-link">
     🔔 For new updates & events, <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">Follow our WhatsApp Channel</a><br>
     💸 Earn more rewards!
   </div>
+</div>
+
+<div class="screen" id="spinWheelScreen">
+  <h2>🎯 Spin & Win Coins</h2>
+  <canvas id="wheelCanvas" width="300" height="300"></canvas>
+  <button onclick="spin()">Spin Now</button>
+  <button onclick="goBack()">Go Back</button>
 </div>
 
 <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
@@ -199,14 +208,69 @@
         <p>Coins used: <strong>${reward.coins}</strong></p>
         <p>Please take a screenshot and send it to us:</p>
         <ul style="list-style:none;padding:0;font-size:16px;">
-          <li>📱 WhatsApp: <b>03228076445</b></li>
+          <li>📞 WhatsApp: <b>03228076445</b></li>
           <li>📧 Gmail: <b>solitlegend@gmail.com</b></li>
-          <li>💬 Discord: <b>legend031</b></li>
+          <li>🗨️ Discord: <b>legend031</b></li>
         </ul>
         <p>🔗 <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank" style="color:#00e676;">Join our WhatsApp Channel</a></p>
         <button onclick="window.location.reload()" style="margin-top:20px;background:#ff4f5a;padding:10px 20px;border:none;border-radius:10px;color:white;cursor:pointer;">Back to App</button>
       </div>
     `;
+  }
+
+  function logout() {
+    localStorage.removeItem("solitName");
+    window.location.reload();
+  }
+
+  function showSpinWheel() {
+    const lastSpin = localStorage.getItem("lastSpinDate");
+    const today = new Date().toISOString().slice(0, 10);
+    if (lastSpin === today) {
+      alert("You've already spun today. Come back tomorrow!");
+      return;
+    }
+    showScreen("spinWheelScreen");
+    drawWheel();
+  }
+
+  function drawWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const values = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+    const colors = ['#ff4f5a', '#4caf50', '#3f51b5', '#ff9800', '#009688'];
+    const total = values.length;
+    const arc = (2 * Math.PI) / total;
+
+    for (let i = 0; i < total; i++) {
+      const angle = i * arc;
+      ctx.beginPath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.moveTo(150, 150);
+      ctx.arc(150, 150, 140, angle, angle + arc);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px Poppins";
+      ctx.textAlign = "center";
+      ctx.fillText(values[i] + "💰", 150 + Math.cos(angle + arc / 2) * 100, 150 + Math.sin(angle + arc / 2) * 100);
+    }
+  }
+
+  function spin() {
+    const values = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+    const reward = values[Math.floor(Math.random() * values.length)];
+
+    fetch(`${SCRIPT_URL}?action=add&name=${userName}&coins=${reward}`)
+      .then(() => {
+        alert(`🎉 You won ${reward} coins!`);
+        localStorage.setItem("lastSpinDate", new Date().toISOString().slice(0, 10));
+        loadCoins();
+        showScreen("mainScreen");
+      });
+  }
+
+  function goBack() {
+    showScreen("mainScreen");
   }
 
   window.onload = () => {
