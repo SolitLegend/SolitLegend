@@ -131,14 +131,16 @@
   }
 
   function tryRedeem(reward) {
-    if (userCoins < reward.coins) {
-      alert("Not enough coins!");
-      return;
-    }
-    selectedReward = reward;
-    document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
-    showScreen("redeemScreen");
- function submitRedemption() {
+  if (userCoins < reward.coins) {
+    alert("Not enough coins!");
+    return;
+  }
+  selectedReward = reward;
+  document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
+  showScreen("redeemScreen");
+} // this should be closed here ✅
+
+function submitRedemption() {
   const contact = document.getElementById("contactInfo").value.trim();
   if (!contact) return alert("Enter contact info");
 
