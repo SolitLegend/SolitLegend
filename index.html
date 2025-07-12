@@ -86,14 +86,6 @@
   <div class="rewards-grid" id="rewardsGrid"></div>
 </div>
 
-<div class="screen" id="redeemScreen">
-  <h3 id="redeemTitle"></h3>
-  <p>Enter Gmail or WhatsApp number to redeem:</p>
-  <input type="text" id="contactInfo" placeholder="Gmail or WhatsApp Number" />
-  <button onclick="submitRedemption()">Submit</button>
-  <button onclick="goBack()">Go Back</button>
-</div>
-
 <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
 
 <script>
@@ -150,55 +142,55 @@
     });
   }
 
-function tryRedeem(reward) {
-  if (userCoins < reward.coins) {
-    alert("Not enough coins!");
-    return;
+  function tryRedeem(reward) {
+    if (userCoins < reward.coins) {
+      alert("Not enough coins!");
+      return;
+    }
+    selectedReward = reward;
+    document.body.innerHTML = `
+      <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <h2>🛒 Confirm Redemption</h2>
+        <p style="margin-top:10px;">Do you want to redeem <strong>${reward.title}</strong> for <strong>${reward.coins}</strong> coins?</p>
+        <div style="margin-top:20px;">
+          <button onclick="confirmRedemption()" style="margin-right:10px;padding:10px 20px;background:#4caf50;border:none;border-radius:8px;font-weight:bold;">✅ Confirm</button>
+          <button onclick="location.reload()" style="padding:10px 20px;background:#f44336;border:none;border-radius:8px;font-weight:bold;">❌ Cancel</button>
+        </div>
+      </div>
+    `;
   }
 
-  // Confirmation Step
-  document.body.innerHTML = `
-    <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-      <h2>🛒 Confirm Redemption</h2>
-      <p style="margin-top:10px;">Do you want to redeem <strong>${reward.title}</strong> for <strong>${reward.coins}</strong> coins?</p>
-      <div style="margin-top:20px;">
-        <button onclick="confirmRedemption()" style="margin-right:10px;padding:10px 20px;background:#4caf50;border:none;border-radius:8px;font-weight:bold;">✅ Confirm</button>
-        <button onclick="location.reload()" style="padding:10px 20px;background:#f44336;border:none;border-radius:8px;font-weight:bold;">❌ Cancel</button>
+  function confirmRedemption() {
+    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=manual`)
+      .then(res => res.text())
+      .then(text => {
+        if (text === "Redeemed") {
+          showFinalRedeemPage(selectedReward);
+        } else {
+          alert("Error: " + text);
+          location.reload();
+        }
+      });
+  }
+
+  function showFinalRedeemPage(reward) {
+    document.body.innerHTML = `
+      <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <h2>✅ Redemption Confirmed!</h2>
+        <p>You redeemed: <strong>${reward.title}</strong></p>
+        <p>Coins used: <strong>${reward.coins}</strong></p>
+        <p>Please take a screenshot and send it to us:</p>
+        <ul style="list-style:none;padding:0;font-size:16px;">
+          <li>📱 WhatsApp: <b>03228076445</b></li>
+          <li>📧 Gmail: <b>solitlegend@gmail.com</b></li>
+          <li>💬 Discord: <b>legend031</b></li>
+        </ul>
+        <p>🔗 <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank" style="color:#00e676;">Join our WhatsApp Channel</a></p>
+        <button onclick="window.location.reload()" style="margin-top:20px;background:#ff4f5a;padding:10px 20px;border:none;border-radius:10px;color:white;cursor:pointer;">Back to App</button>
       </div>
-    </div>
-  `;
+    `;
+  }
+</script>
 
-  // Store selected reward
-  selectedReward = reward;
-}
-
-function confirmRedemption() {
-  fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=manual`)
-    .then(res => res.text())
-    .then(text => {
-      if (text === "Redeemed") {
-        showFinalRedeemPage(selectedReward);
-      } else {
-        alert("Error: " + text);
-        location.reload();
-      }
-    });
-}
-
-function showFinalRedeemPage(reward) {
-  document.body.innerHTML = `
-    <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-      <h2>✅ Redemption Confirmed!</h2>
-      <p>You redeemed: <strong>${reward.title}</strong></p>
-      <p>Coins used: <strong>${reward.coins}</strong></p>
-      <p>Please take a screenshot and send it to us:</p>
-      <ul style="list-style:none;padding:0;font-size:16px;">
-        <li>📱 WhatsApp: <b>03228076445</b></li>
-        <li>📧 Gmail: <b>solitlegend@gmail.com</b></li>
-        <li>💬 Discord: <b>legend031</b></li>
-      </ul>
-      <p>🔗 <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank" style="color:#00e676;">Join our WhatsApp Channel</a></p>
-      <button onclick="window.location.reload()" style="margin-top:20px;background:#ff4f5a;padding:10px 20px;border:none;border-radius:10px;color:white;cursor:pointer;">Back to App</button>
-    </div>
-  `;
-}
+</body>
+</html>
