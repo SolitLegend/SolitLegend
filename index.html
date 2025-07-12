@@ -69,11 +69,22 @@
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
     }
+    .channel-link {
+      margin-top: 30px;
+      font-size: 0.9rem;
+      text-align: center;
+      color: #ccc;
+    }
+    .channel-link a {
+      color: #00e676;
+      text-decoration: none;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-<div class="screen active" id="loginScreen">
+<div class="screen" id="loginScreen">
   <h2>Welcome to <span style="color:#ff4f5a">Solit Legend Rewards</span></h2>
   <input type="text" id="username" placeholder="Enter your name" />
   <button onclick="startApp()">Start</button>
@@ -84,6 +95,10 @@
   <div id="user-coins" style="margin-top: 10px; font-weight: bold;">Loading coins...</div>
   <button onclick="watchAdAndEarn()">🎥 Watch & Earn</button>
   <div class="rewards-grid" id="rewardsGrid"></div>
+  <div class="channel-link">
+    🔔 For new updates & events, <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">Follow our WhatsApp Channel</a><br>
+    💸 Earn more rewards!
+  </div>
 </div>
 
 <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
@@ -100,8 +115,11 @@
     { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png' },
     { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png' },
     { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png' },
-    { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' },
-    { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' }
+    { title: 'PUBG 60 UC', coins: 1000, img: 'https://img.icons8.com/color/96/pubg.png' },
+    { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' },
+    { title: 'Discord Nitro', coins: 4000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
+    { title: 'Netflix 1 Month', coins: 4000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' },
+    { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' }
   ];
 
   function startApp() {
@@ -190,6 +208,19 @@
       </div>
     `;
   }
+
+  window.onload = () => {
+    const stored = localStorage.getItem("solitName");
+    if (stored) {
+      userName = stored;
+      document.getElementById("displayName").innerText = userName;
+      showScreen("mainScreen");
+      loadCoins();
+      loadRewards();
+    } else {
+      showScreen("loginScreen");
+    }
+  };
 </script>
 
 </body>
