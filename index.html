@@ -12,7 +12,7 @@
       background-color: #1e1e2f;
       color: white;
     }
-    .login-screen, .main-screen, .reward-detail {
+    .login-screen, .main-screen, .reward-detail, .success-screen {
       display: none;
       padding: 20px;
       min-height: 100vh;
@@ -28,7 +28,7 @@
       margin-top: 15px;
       width: 250px;
     }
-    .login-screen button, .earn-btn {
+    button {
       padding: 10px 20px;
       margin-top: 10px;
       background-color: #ff4f5a;
@@ -61,19 +61,36 @@
       height: 80px;
       margin-bottom: 10px;
     }
-    .reward-detail { text-align: center; }
-    .reward-detail button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background-color: #ff4f5a;
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-    }
     #user-coins {
       margin-bottom: 10px;
       font-size: 1.1em;
+    }
+    a { color: #4ea9ff; text-decoration: underline; }
+    .top-bar {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 20px;
+      background-color: #2e2e4d;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .dropdown button {
+      display: block;
+      background: none;
+      width: 100%;
+      text-align: left;
+      padding: 10px;
+    }
+    .dropdown button:hover {
+      background-color: #444;
     }
   </style>
 </head>
@@ -85,16 +102,28 @@
   </div>
 
   <div class="main-screen" id="mainScreen">
+    <div class="top-bar" onclick="toggleDropdown()">⋮</div>
+    <div class="dropdown" id="dropdownMenu">
+      <button onclick="logout()">🚪 Logout</button>
+      <button onclick="shareReferral()">🎁 Refer & Earn</button>
+    </div>
     <h2>Hello, <span id="displayName"></span>!</h2>
     <div id="user-coins">Loading your coins...</div>
     <button class="earn-btn" onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
     <div class="rewards-grid" id="rewardsGrid"></div>
+    <p style="margin-top: 30px;">📢 Join our <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">WhatsApp Channel</a> for updates and giveaways!</p>
   </div>
 
   <div class="reward-detail" id="rewardDetail">
     <h2 id="rewardTitle"></h2>
     <p>If you have enough coins for this reward, congratulations! 🎉</p>
-    <p>Contact us to claim:</p>
+    <button onclick="confirmRedeem()">✅ Confirm</button>
+    <button onclick="backToMain()">❌ Cancel</button>
+  </div>
+
+  <div class="success-screen" id="successScreen">
+    <h2>🎉 Mubarak ho! Aapne reward claim kar liya.</h2>
+    <p>Is screen ka screenshot lein aur humse contact karein:</p>
     <p><strong>WhatsApp:</strong> 093228076445</p>
     <p><strong>Discord:</strong> legend031</p>
     <p><strong>Email:</strong> solitlegend@gmail.com</p>
@@ -102,8 +131,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhOsu2nZuzt73XLudYVeeE9oMh_bXoZeBKSkZCaH8aNORMvVKReG6PNU4HdkOVpEc5Ww/exec';
-    let userName = '';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5WQhywSaywPBxHJTUYdoHdqRoKLwUTxbTqOdc1xiHwcCnyM5DHWFM5wYuOUxpmCbs/exec';
+    let userName = '', userCoins = 0, selectedReward = null;
 
     const rewards = [
       { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
@@ -128,8 +157,7 @@
       userName = name;
       localStorage.setItem('solitName', name);
       document.getElementById('displayName').innerText = name;
-      document.getElementById('loginScreen').classList.remove('active');
-      document.getElementById('mainScreen').classList.add('active');
+      showScreen('mainScreen');
       loadCoins();
       loadRewards();
     }
@@ -138,18 +166,21 @@
       fetch(`${SCRIPT_URL}?name=${userName}&action=get`)
         .then(res => res.text())
         .then(coin => {
-          document.getElementById('user-coins').innerText = `You have: ${coin} coins`;
+          userCoins = parseInt(coin);
+          document.getElementById('user-coins').innerText = `You have: ${userCoins} coins`;
         });
     }
 
     function watchAdAndEarn() {
       const mainScreen = document.getElementById('mainScreen');
-      mainScreen.innerHTML = `
-        <h2>Loading Ad... Please Wait 3 Seconds</h2>
-        <iframe src="about:blank" style="width:300px;height:250px;border:none;margin-top:20px;"></iframe>
-        <p style="font-size: 0.9em; margin-top: 8px; color: #ccc;">
-          🎁 Sometimes surprise rewards appear in this ad area... keep an eye out!
-        </p>
+      mainScreen.innerHTML += `
+        <div id="adSection">
+          <h2>Loading Ad... Please Wait 3 Seconds</h2>
+          <iframe src="about:blank" style="width:300px;height:250px;border:none;margin-top:20px;"></iframe>
+          <p style="font-size: 0.9em; margin-top: 8px; color: #ccc;">
+            🎁 Sometimes surprise rewards appear in this ad area... keep an eye out!
+          </p>
+        </div>
       `;
 
       const script = document.createElement('script');
@@ -160,10 +191,9 @@
       setTimeout(() => {
         const earned = Math.floor(Math.random() * 2) + 1;
         fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
-          .then(res => res.text())
           .then(() => {
             alert(`You earned +${earned} coins!`);
-            window.location.reload();
+            loadCoins();
           });
       }, 3000);
     }
@@ -181,23 +211,57 @@
     }
 
     function showDetail(reward) {
-      document.getElementById('mainScreen').classList.remove('active');
-      document.getElementById('rewardDetail').classList.add('active');
+      selectedReward = reward;
       document.getElementById('rewardTitle').innerText = `${reward.title} – ${reward.coins} Coins`;
+      showScreen('rewardDetail');
+    }
+
+    function confirmRedeem() {
+      if (userCoins < selectedReward.coins) return alert('Not enough coins');
+      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+        showScreen('successScreen');
+        loadCoins();
+      });
     }
 
     function backToMain() {
-      document.getElementById('rewardDetail').classList.remove('active');
-      document.getElementById('mainScreen').classList.add('active');
+      showScreen('mainScreen');
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.login-screen, .main-screen, .reward-detail, .success-screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdownMenu');
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function logout() {
+      localStorage.removeItem('solitName');
+      location.reload();
+    }
+
+    function shareReferral() {
+      const referralLink = `${window.location.origin + window.location.pathname}?ref=${userName}`;
+      navigator.clipboard.writeText(referralLink);
+      alert("Referral link copied! Share and earn 50 coins when someone joins with your link.");
     }
 
     window.onload = () => {
       const storedName = localStorage.getItem('solitName');
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+
+      if (ref && !storedName) {
+        fetch(`${SCRIPT_URL}?name=${ref}&action=add&coins=50`);
+      }
+
       if (storedName) {
         userName = storedName;
-        document.getElementById('displayName').innerText = storedName;
-        document.getElementById('loginScreen').classList.remove('active');
-        document.getElementById('mainScreen').classList.add('active');
+        document.getElementById('displayName').innerText = userName;
+        showScreen('mainScreen');
         loadCoins();
         loadRewards();
       }
