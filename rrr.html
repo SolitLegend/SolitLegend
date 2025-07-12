@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solit Legend Rewards</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e1e2f;
+      color: white;
+    }
+    .login-screen, .main-screen, .reward-detail {
+      display: none;
+      padding: 20px;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .active { display: flex; }
+    .login-screen input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 15px;
+      width: 250px;
+    }
+    .login-screen button, .earn-btn {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background-color: #ff4f5a;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .rewards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+    .reward-card {
+      background-color: #2e2e4d;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .reward-card:hover {
+      transform: scale(1.05);
+      background-color: #3c3c6e;
+    }
+    .reward-card img {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 10px;
+    }
+    .reward-detail { text-align: center; }
+    .reward-detail button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #ff4f5a;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #user-coins {
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-screen active" id="loginScreen">
+    <h2>Welcome to Solit Legend Rewards</h2>
+    <input type="text" id="username" placeholder="Enter your name">
+    <button onclick="startApp()">Start</button>
+  </div>
+
+  <div class="main-screen" id="mainScreen">
+    <h2>Hello, <span id="displayName"></span>!</h2>
+    <div id="user-coins">Loading your coins...</div>
+    <button class="earn-btn" onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
+    <div class="rewards-grid" id="rewardsGrid"></div>
+  </div>
+
+  <div class="reward-detail" id="rewardDetail">
+    <h2 id="rewardTitle"></h2>
+    <p>If you have enough coins for this reward, congratulations! 🎉</p>
+    <p>Contact us to claim:</p>
+    <p><strong>WhatsApp:</strong> 093228076445</p>
+    <p><strong>Discord:</strong> legend031</p>
+    <p><strong>Email:</strong> solitlegend@gmail.com</p>
+    <button onclick="backToMain()">Go Back</button>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhOsu2nZuzt73XLudYVeeE9oMh_bXoZeBKSkZCaH8aNORMvVKReG6PNU4HdkOVpEc5Ww/exec';
+    let userName = '';
+
+    const rewards = [
+      { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' },
+      { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' },
+      { title: 'PUBG 60 UC', coins: 3500, img: 'https://img.icons8.com/color/96/helmet.png' },
+      { title: 'Roblox Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/roblox.png' },
+      { title: 'Steam Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/steam.png' },
+      { title: 'Mobile Load Rs. 100', coins: 1000, img: 'https://img.icons8.com/color/96/smartphone.png' },
+      { title: 'Monthly Data 2GB', coins: 2000, img: 'https://img.icons8.com/color/96/signal-bars.png' },
+      { title: 'Discord Nitro 1 Month', coins: 3000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
+      { title: 'Spotify Premium 1 Month', coins: 3500, img: 'https://img.icons8.com/color/96/spotify--v1.png' },
+      { title: 'Netflix 1 Month', coins: 6000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' },
+    ];
+
+    function startApp() {
+      const name = document.getElementById('username').value.trim();
+      if (!name) return alert('Please enter your name');
+      userName = name;
+      localStorage.setItem('solitName', name);
+      document.getElementById('displayName').innerText = name;
+      document.getElementById('loginScreen').classList.remove('active');
+      document.getElementById('mainScreen').classList.add('active');
+      loadCoins();
+      loadRewards();
+    }
+
+    function loadCoins() {
+      fetch(`${SCRIPT_URL}?name=${userName}&action=get`)
+        .then(res => res.text())
+        .then(coin => {
+          document.getElementById('user-coins').innerText = `You have: ${coin} coins`;
+        });
+    }
+
+    function watchAdAndEarn() {
+      const earned = Math.floor(Math.random() * 2) + 1; // 1 ya 2 coins
+      fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
+        .then(res => res.text())
+        .then(() => {
+          loadCoins();
+          alert(`You earned +${earned} coins!`);
+        });
+    }
+
+    function loadRewards() {
+      const grid = document.getElementById('rewardsGrid');
+      grid.innerHTML = '';
+      rewards.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'reward-card';
+        div.innerHTML = `<img src="${r.img}" alt="icon"><h3>${r.title}</h3><p>${r.coins} Coins</p>`;
+        div.onclick = () => showDetail(r);
+        grid.appendChild(div);
+      });
+    }
+
+    function showDetail(reward) {
+      document.getElementById('mainScreen').classList.remove('active');
+      document.getElementById('rewardDetail').classList.add('active');
+      document.getElementById('rewardTitle').innerText = `${reward.title} – ${reward.coins} Coins`;
+    }
+
+    function backToMain() {
+      document.getElementById('rewardDetail').classList.remove('active');
+      document.getElementById('mainScreen').classList.add('active');
+    }
+
+    window.onload = () => {
+      const storedName = localStorage.getItem('solitName');
+      if (storedName) {
+        userName = storedName;
+        document.getElementById('displayName').innerText = storedName;
+        document.getElementById('loginScreen').classList.remove('active');
+        document.getElementById('mainScreen').classList.add('active');
+        loadCoins();
+        loadRewards();
+      }
+    };
+  </script>
+</body>
+</html>
