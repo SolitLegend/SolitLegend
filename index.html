@@ -12,7 +12,7 @@
       background-color: #1e1e2f;
       color: white;
     }
-    .login-screen, .main-screen, .reward-detail, .success-screen {
+    .screen {
       display: none;
       padding: 20px;
       min-height: 100vh;
@@ -37,6 +37,28 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+    }
+    .topbar {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+    .menu {
+      background: #2e2e4d;
+      border-radius: 8px;
+      padding: 10px;
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 30px;
+    }
+    .menu button {
+      display: block;
+      margin: 5px 0;
+      background: none;
+      color: white;
+      font-weight: normal;
+      text-align: left;
     }
     .rewards-grid {
       display: grid;
@@ -66,64 +88,52 @@
       font-size: 1.1em;
     }
     a { color: #4ea9ff; text-decoration: underline; }
-    .top-bar {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    .dropdown {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 20px;
-      background-color: #2e2e4d;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .dropdown button {
-      display: block;
-      background: none;
-      width: 100%;
-      text-align: left;
-      padding: 10px;
-    }
-    .dropdown button:hover {
-      background-color: #444;
+    input[type="text"] {
+      padding: 8px;
+      width: 220px;
+      border-radius: 5px;
+      margin-top: 8px;
+      border: none;
     }
   </style>
 </head>
 <body>
-  <div class="login-screen active" id="loginScreen">
+  <div class="screen login-screen active" id="loginScreen">
     <h2>Welcome to Solit Legend Rewards</h2>
     <input type="text" id="username" placeholder="Enter your name" />
     <button onclick="startApp()">Start</button>
   </div>
 
-  <div class="main-screen" id="mainScreen">
-    <div class="top-bar" onclick="toggleDropdown()">⋮</div>
-    <div class="dropdown" id="dropdownMenu">
-      <button onclick="logout()">🚪 Logout</button>
-      <button onclick="shareReferral()">🎁 Refer & Earn</button>
+  <div class="screen main-screen" id="mainScreen">
+    <div class="topbar">
+      <button onclick="toggleMenu()">⋮</button>
+      <div class="menu" id="menu">
+        <button onclick="logout()">Logout</button>
+        <button onclick="copyReferral()">Refer & Earn</button>
+      </div>
     </div>
     <h2>Hello, <span id="displayName"></span>!</h2>
     <div id="user-coins">Loading your coins...</div>
-    <button class="earn-btn" onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
+    <button onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
     <div class="rewards-grid" id="rewardsGrid"></div>
     <p style="margin-top: 30px;">📢 Join our <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">WhatsApp Channel</a> for updates and giveaways!</p>
   </div>
 
-  <div class="reward-detail" id="rewardDetail">
+  <div class="screen reward-detail" id="rewardDetail">
     <h2 id="rewardTitle"></h2>
-    <p>If you have enough coins for this reward, congratulations! 🎉</p>
     <button onclick="confirmRedeem()">✅ Confirm</button>
     <button onclick="backToMain()">❌ Cancel</button>
   </div>
 
-  <div class="success-screen" id="successScreen">
-    <h2>🎉 Mubarak ho! Aapne reward claim kar liya.</h2>
-    <p>Is screen ka screenshot lein aur humse contact karein:</p>
+  <div class="screen payment-method" id="paymentScreen">
+    <h2>Select Payment Method</h2>
+    <button onclick="fillDetails('Easypaisa')">Easypaisa</button>
+    <button onclick="fillDetails('JazzCash')">JazzCash</button>
+  </div>
+
+  <div class="screen success-screen" id="successScreen">
+    <h2>🎉 Congratulations! You have claimed the reward.</h2>
+    <p>Please take a screenshot of this screen and contact us via:</p>
     <p><strong>WhatsApp:</strong> 093228076445</p>
     <p><strong>Discord:</strong> legend031</p>
     <p><strong>Email:</strong> solitlegend@gmail.com</p>
@@ -135,20 +145,11 @@
     let userName = '', userCoins = 0, selectedReward = null;
 
     const rewards = [
-      { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
-      { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png' },
-      { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png' },
-      { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png' },
-      { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' },
-      { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' },
-      { title: 'PUBG 60 UC', coins: 3500, img: 'https://img.icons8.com/color/96/helmet.png' },
-      { title: 'Roblox Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/roblox.png' },
-      { title: 'Steam Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/steam.png' },
-      { title: 'Mobile Load Rs. 100', coins: 1000, img: 'https://img.icons8.com/color/96/smartphone.png' },
-      { title: 'Monthly Data 2GB', coins: 2000, img: 'https://img.icons8.com/color/96/signal-bars.png' },
-      { title: 'Discord Nitro 1 Month', coins: 3000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
-      { title: 'Spotify Premium 1 Month', coins: 3500, img: 'https://img.icons8.com/color/96/spotify--v1.png' },
-      { title: 'Netflix 1 Month', coins: 6000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' }
+      { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
+      { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
+      { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
+      { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
+      { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png', isCash: false }
     ];
 
     function startApp() {
@@ -162,40 +163,35 @@
       loadRewards();
     }
 
+    function toggleMenu() {
+      const menu = document.getElementById('menu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function logout() {
+      localStorage.removeItem('solitName');
+      location.reload();
+    }
+
+    function copyReferral() {
+      navigator.clipboard.writeText(`${window.location.href}?ref=${userName}`);
+      alert('Referral link copied!');
+    }
+
     function loadCoins() {
-      fetch(`${SCRIPT_URL}?name=${userName}&action=get`)
-        .then(res => res.text())
-        .then(coin => {
-          userCoins = parseInt(coin);
-          document.getElementById('user-coins').innerText = `You have: ${userCoins} coins`;
-        });
+      fetch(`${SCRIPT_URL}?name=${userName}&action=get`).then(res => res.text()).then(coin => {
+        userCoins = parseInt(coin);
+        document.getElementById('user-coins').innerText = `You have: ${userCoins} coins`;
+      });
     }
 
     function watchAdAndEarn() {
-      const mainScreen = document.getElementById('mainScreen');
-      mainScreen.innerHTML += `
-        <div id="adSection">
-          <h2>Loading Ad... Please Wait 3 Seconds</h2>
-          <iframe src="about:blank" style="width:300px;height:250px;border:none;margin-top:20px;"></iframe>
-          <p style="font-size: 0.9em; margin-top: 8px; color: #ccc;">
-            🎁 Sometimes surprise rewards appear in this ad area... keep an eye out!
-          </p>
-        </div>
-      `;
-
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = '//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js';
-      mainScreen.appendChild(script);
-
-      setTimeout(() => {
-        const earned = Math.floor(Math.random() * 2) + 1;
-        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
-          .then(() => {
-            alert(`You earned +${earned} coins!`);
-            loadCoins();
-          });
-      }, 3000);
+      const earned = Math.floor(Math.random() * 2) + 1;
+      fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
+        .then(() => {
+          alert(`You earned +${earned} coins!`);
+          loadCoins();
+        });
     }
 
     function loadRewards() {
@@ -218,7 +214,20 @@
 
     function confirmRedeem() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
-      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+      if (selectedReward.isCash) {
+        showScreen('paymentScreen');
+      } else {
+        fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+          showScreen('successScreen');
+          loadCoins();
+        });
+      }
+    }
+
+    function fillDetails(method) {
+      const account = prompt(`Enter your ${method} account number:`);
+      if (!account) return;
+      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${method}: ${account}`).then(() => {
         showScreen('successScreen');
         loadCoins();
       });
@@ -229,41 +238,24 @@
     }
 
     function showScreen(id) {
-      document.querySelectorAll('.login-screen, .main-screen, .reward-detail, .success-screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-    }
-
-    function toggleDropdown() {
-      const dropdown = document.getElementById('dropdownMenu');
-      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function logout() {
-      localStorage.removeItem('solitName');
-      location.reload();
-    }
-
-    function shareReferral() {
-      const referralLink = `${window.location.origin + window.location.pathname}?ref=${userName}`;
-      navigator.clipboard.writeText(referralLink);
-      alert("Referral link copied! Share and earn 50 coins when someone joins with your link.");
     }
 
     window.onload = () => {
       const storedName = localStorage.getItem('solitName');
-      const urlParams = new URLSearchParams(window.location.search);
-      const ref = urlParams.get('ref');
-
-      if (ref && !storedName) {
-        fetch(`${SCRIPT_URL}?name=${ref}&action=add&coins=50`);
-      }
-
       if (storedName) {
         userName = storedName;
         document.getElementById('displayName').innerText = userName;
         showScreen('mainScreen');
         loadCoins();
         loadRewards();
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) {
+        fetch(`${SCRIPT_URL}?name=${ref}&action=add&coins=50`);
       }
     };
   </script>
