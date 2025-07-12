@@ -75,6 +75,10 @@
     }
     #user-coins { margin-bottom: 10px; font-size: 1.1em; }
     a { color: #4ea9ff; text-decoration: underline; }
+    #loadingScreen img {
+      max-width: 250px;
+      margin: 10px;
+    }
   </style>
   <script type="text/javascript" src="//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js"></script>
 </head>
@@ -91,6 +95,12 @@
     <h2>Welcome to Solit Legend Rewards</h2>
     <input type="text" id="username" placeholder="Enter your name" />
     <button id="startButton">Start</button>
+  </div>
+
+  <div class="screen" id="loadingScreen">
+    <h2>Loading...</h2>
+    <img id="gif1" src="https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiaWVtamRlMDFlZzNvdnk4c2pvdGExc2Y1cnd2YWc0MXk0aDgyZ2RicCZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/hxERQNWQudqSF1iDnr/giphy.gif" alt="loading gif 1">
+    <img id="gif2" src="https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiOW83Nml0OWw1dmh3dnI4cWhjYTB5cTV2aGRsZ2d1N3h2d3NycTRxaSZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/fUQ4rhUZJYiQsas6WD/giphy.gif" alt="loading gif 2" style="display: none;">
   </div>
 
   <div class="screen main-screen" id="mainScreen">
@@ -169,9 +179,12 @@
       userName = name;
       localStorage.setItem('solitName', name);
       document.getElementById('displayName').innerText = name;
-      showScreen('mainScreen');
-      loadCoins();
-      loadRewards();
+      showScreen('loadingScreen');
+      setTimeout(() => {
+        showScreen('mainScreen');
+        loadCoins();
+        loadRewards();
+      }, 3000);
     }
 
     function loadCoins() {
