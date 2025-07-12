@@ -37,7 +37,9 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    button:hover { background: #ff6a75; }
+    button:hover {
+      background: #ff6a75;
+    }
     .rewards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -78,37 +80,6 @@
       text-decoration: none;
       font-weight: bold;
     }
-    .top-bar {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-    .menu-button {
-      font-size: 24px;
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-    .menu-dropdown {
-      background: #333;
-      padding: 10px;
-      position: absolute;
-      top: 50px;
-      right: 20px;
-      display: none;
-      border-radius: 8px;
-    }
-    .menu-dropdown button {
-      display: block;
-      width: 100%;
-      margin: 5px 0;
-    }
-    #spinCanvas {
-      margin-top: 30px;
-      background: white;
-      border-radius: 50%;
-    }
   </style>
 </head>
 <body>
@@ -120,19 +91,9 @@
 </div>
 
 <div class="screen" id="mainScreen">
-  <div class="top-bar">
-    <button class="menu-button" onclick="toggleMenu()">&#8942;</button>
-    <div class="menu-dropdown" id="menu">
-      <button onclick="logout()">Logout</button>
-      <button onclick="alert('Settings coming soon')">Settings</button>
-    </div>
-  </div>
   <h2>Hello, <span id="displayName"></span>!</h2>
   <div id="user-coins" style="margin-top: 10px; font-weight: bold;">Loading coins...</div>
   <button onclick="watchAdAndEarn()">🎥 Watch & Earn</button>
-  <button onclick="spinWheel()">🎯 Spin Wheel</button>
-  <canvas id="spinCanvas" width="300" height="300"></canvas>
-  <button onclick="copyReferralLink()">🔗 Copy Referral Link</button>
   <div class="rewards-grid" id="rewardsGrid"></div>
   <div class="channel-link">
     🔔 For new updates & events, <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">Follow our WhatsApp Channel</a><br>
@@ -140,130 +101,126 @@
   </div>
 </div>
 
+<audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
 <script>
-let userName = '', userCoins = 0, spinsLeft = 2;
-const spinValues = [2, 5, 10, 15, 20];
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx511ZTDJCAGz4PTrloQbMOVkAtJw8IwbzZl4gUJqsPG7v908GbF7AlBinDpuQ_L9ERrA/exec';
+  let userName = '';
+  let userCoins = 0;
+  let selectedReward = null;
+  const clickSound = document.getElementById('clickSound');
 
-function startApp() {
-  const name = document.getElementById('username').value.trim();
-  if (!name) return alert("Enter your name");
-  userName = name;
-  localStorage.setItem("solitName", name);
-  document.getElementById("displayName").innerText = name;
-  showScreen("mainScreen");
-  loadCoins();
-  loadRewards();
-  drawWheel();
-}
-
-function showScreen(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-function loadCoins() {
-  userCoins = parseInt(localStorage.getItem("solitCoins") || 0);
-  document.getElementById("user-coins").innerText = `You have: ${userCoins} coins`;
-}
-
-function updateCoins(amount) {
-  userCoins += amount;
-  localStorage.setItem("solitCoins", userCoins);
-  loadCoins();
-}
-
-function toggleMenu() {
-  const menu = document.getElementById("menu");
-  menu.style.display = (menu.style.display === "block") ? "none" : "block";
-}
-
-function logout() {
-  localStorage.removeItem("solitName");
-  location.reload();
-}
-
-function copyReferralLink() {
-  const refLink = `${location.origin}${location.pathname}?ref=${userName}`;
-  navigator.clipboard.writeText(refLink);
-  alert("Referral link copied! Share with friends.");
-}
-
-function spinWheel() {
-  if (spinsLeft <= 0) return alert("Daily spin limit reached");
-  const canvas = document.getElementById("spinCanvas");
-  const ctx = canvas.getContext("2d");
-  const slice = 360 / spinValues.length;
-  const angle = Math.floor(Math.random() * 360);
-  const index = Math.floor(angle / slice);
-  const value = spinValues[index];
-
-  // Spin animation
-  let rotation = 0;
-  const interval = setInterval(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(150, 150);
-    ctx.rotate((rotation += 0.3));
-    ctx.beginPath();
-    ctx.arc(0, 0, 140, 0, 2 * Math.PI);
-    ctx.fillStyle = "#ff4f5a";
-    ctx.fill();
-    ctx.fillStyle = "white";
-    ctx.font = "20px Poppins";
-    ctx.fillText(`${value} Coins`, -40, 0);
-    ctx.restore();
-    if (rotation > 20) {
-      clearInterval(interval);
-      updateCoins(value);
-      spinsLeft--;
-      alert(`You won ${value} coins! Spins left: ${spinsLeft}`);
-      drawWheel();
-    }
-  }, 30);
-}
-
-function drawWheel() {
-  const canvas = document.getElementById("spinCanvas");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.beginPath();
-  ctx.arc(150, 150, 140, 0, 2 * Math.PI);
-  ctx.fillStyle = "#eee";
-  ctx.fill();
-  ctx.fillStyle = "black";
-  ctx.font = "18px Poppins";
-  ctx.fillText("🎯 Spin", 110, 160);
-}
-
-function loadRewards() {
   const rewards = [
     { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
-    { title: 'PUBG 60 UC', coins: 1000, img: 'https://img.icons8.com/color/96/pubg.png' }
+    { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png' },
+    { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png' },
+    { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png' },
+    { title: 'PUBG 60 UC', coins: 1000, img: 'https://img.icons8.com/color/96/pubg.png' },
+    { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' },
+    { title: 'Discord Nitro', coins: 4000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
+    { title: 'Netflix 1 Month', coins: 4000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' },
+    { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' }
   ];
-  const grid = document.getElementById("rewardsGrid");
-  grid.innerHTML = '';
-  rewards.forEach(r => {
-    const div = document.createElement("div");
-    div.className = "reward-card";
-    div.innerHTML = `<img src="${r.img}" /><h4>${r.title}</h4><p>${r.coins} Coins</p>`;
-    div.onclick = () => alert("Redeem functionality coming soon");
-    grid.appendChild(div);
-  });
-}
 
-window.onload = () => {
-  const stored = localStorage.getItem("solitName");
-  if (stored) {
-    userName = stored;
-    document.getElementById("displayName").innerText = userName;
+  function startApp() {
+    const name = document.getElementById('username').value.trim();
+    if (!name) return alert("Enter your name");
+    userName = name;
+    localStorage.setItem("solitName", name);
+    document.getElementById("displayName").innerText = name;
     showScreen("mainScreen");
     loadCoins();
     loadRewards();
-    drawWheel();
-  } else {
-    showScreen("loginScreen");
+    clickSound.play();
   }
-}
+
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+
+  function loadCoins() {
+    fetch(`${SCRIPT_URL}?action=get&name=${userName}`)
+      .then(res => res.text())
+      .then(coin => {
+        userCoins = parseInt(coin || 0);
+        document.getElementById("user-coins").innerText = `You have: ${userCoins} coins`;
+      });
+  }
+
+  function loadRewards() {
+    const grid = document.getElementById("rewardsGrid");
+    grid.innerHTML = '';
+    rewards.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "reward-card";
+      div.innerHTML = `<img src="${r.img}" /><h4>${r.title}</h4><p>${r.coins} Coins</p>`;
+      div.onclick = () => tryRedeem(r);
+      grid.appendChild(div);
+    });
+  }
+
+  function tryRedeem(reward) {
+    if (userCoins < reward.coins) {
+      alert("Not enough coins!");
+      return;
+    }
+    selectedReward = reward;
+    document.body.innerHTML = `
+      <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <h2>🛒 Confirm Redemption</h2>
+        <p style="margin-top:10px;">Do you want to redeem <strong>${reward.title}</strong> for <strong>${reward.coins}</strong> coins?</p>
+        <div style="margin-top:20px;">
+          <button onclick="confirmRedemption()" style="margin-right:10px;padding:10px 20px;background:#4caf50;border:none;border-radius:8px;font-weight:bold;">✅ Confirm</button>
+          <button onclick="location.reload()" style="padding:10px 20px;background:#f44336;border:none;border-radius:8px;font-weight:bold;">❌ Cancel</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function confirmRedemption() {
+    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=manual`)
+      .then(res => res.text())
+      .then(text => {
+        if (text === "Redeemed") {
+          showFinalRedeemPage(selectedReward);
+        } else {
+          alert("Error: " + text);
+          location.reload();
+        }
+      });
+  }
+
+  function showFinalRedeemPage(reward) {
+    document.body.innerHTML = `
+      <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+        <h2>✅ Redemption Confirmed!</h2>
+        <p>You redeemed: <strong>${reward.title}</strong></p>
+        <p>Coins used: <strong>${reward.coins}</strong></p>
+        <p>Please take a screenshot and send it to us:</p>
+        <ul style="list-style:none;padding:0;font-size:16px;">
+          <li>📱 WhatsApp: <b>03228076445</b></li>
+          <li>📧 Gmail: <b>solitlegend@gmail.com</b></li>
+          <li>💬 Discord: <b>legend031</b></li>
+        </ul>
+        <p>🔗 <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank" style="color:#00e676;">Join our WhatsApp Channel</a></p>
+        <button onclick="window.location.reload()" style="margin-top:20px;background:#ff4f5a;padding:10px 20px;border:none;border-radius:10px;color:white;cursor:pointer;">Back to App</button>
+      </div>
+    `;
+  }
+
+  window.onload = () => {
+    const stored = localStorage.getItem("solitName");
+    if (stored) {
+      userName = stored;
+      document.getElementById("displayName").innerText = userName;
+      showScreen("mainScreen");
+      loadCoins();
+      loadRewards();
+    } else {
+      showScreen("loginScreen");
+    }
+  };
 </script>
 
 </body>
