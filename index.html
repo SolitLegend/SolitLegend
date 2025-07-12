@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Solit Legend Rewards</title>
   <style>
     * { box-sizing: border-box; }
@@ -80,7 +80,7 @@
 <body>
   <div class="login-screen active" id="loginScreen">
     <h2>Welcome to Solit Legend Rewards</h2>
-    <input type="text" id="username" placeholder="Enter your name">
+    <input type="text" id="username" placeholder="Enter your name" />
     <button onclick="startApp()">Start</button>
   </div>
 
@@ -115,7 +115,7 @@
       { title: 'Monthly Data 2GB', coins: 2000, img: 'https://img.icons8.com/color/96/signal-bars.png' },
       { title: 'Discord Nitro 1 Month', coins: 3000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
       { title: 'Spotify Premium 1 Month', coins: 3500, img: 'https://img.icons8.com/color/96/spotify--v1.png' },
-      { title: 'Netflix 1 Month', coins: 6000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' },
+      { title: 'Netflix 1 Month', coins: 6000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' }
     ];
 
     function startApp() {
@@ -139,13 +139,29 @@
     }
 
     function watchAdAndEarn() {
-      const earned = Math.floor(Math.random() * 2) + 1; // 1 ya 2 coins
-      fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
-        .then(res => res.text())
-        .then(() => {
-          loadCoins();
-          alert(`You earned +${earned} coins!`);
-        });
+      const mainScreen = document.getElementById('mainScreen');
+      mainScreen.innerHTML = `
+        <h2>Loading Ad... Please Wait 3 Seconds</h2>
+        <iframe src="about:blank" style="width:300px;height:250px;border:none;margin-top:20px;"></iframe>
+        <p style="font-size: 0.9em; margin-top: 8px; color: #ccc;">
+          🎁 Sometimes surprise rewards appear in this ad area... keep an eye out!
+        </p>
+      `;
+
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = '//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js';
+      mainScreen.appendChild(script);
+
+      setTimeout(() => {
+        const earned = Math.floor(Math.random() * 2) + 1;
+        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
+          .then(res => res.text())
+          .then(() => {
+            alert(`You earned +${earned} coins!`);
+            window.location.reload();
+          });
+      }, 3000);
     }
 
     function loadRewards() {
@@ -183,9 +199,5 @@
       }
     };
   </script>
-
-  <!-- Adsterra Ad Code -->
-  <script type='text/javascript' src='//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js'></script>
 </body>
 </html>
-
