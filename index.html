@@ -143,7 +143,7 @@
   function submitRedemption() {
     const contact = document.getElementById("contactInfo").value.trim();
     if (!contact) return alert("Enter contact info");
-    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&contact=${encodeURIComponent(contact)}`)
+    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=${encodeURIComponent(contact)}`)
       .then(res => res.text())
       .then(() => {
         alert("Redemption submitted!");
