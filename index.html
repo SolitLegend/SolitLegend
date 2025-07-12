@@ -131,30 +131,31 @@
   }
 
   function tryRedeem(reward) {
-  if (userCoins < reward.coins) {
-    alert("Not enough coins!");
-    return;
+    if (userCoins < reward.coins) {
+      alert("Not enough coins!");
+      return;
+    }
+    selectedReward = reward;
+    document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
+    showScreen("redeemScreen");
   }
-  selectedReward = reward;
-  document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
-  showScreen("redeemScreen");
-} // this should be closed here ✅
 
-function submitRedemption() {
-  const contact = document.getElementById("contactInfo").value.trim();
-  if (!contact) return alert("Enter contact info");
+  function submitRedemption() {
+    const contact = document.getElementById("contactInfo").value.trim();
+    if (!contact) return alert("Enter contact info");
 
-  fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=${encodeURIComponent(contact)}`)
-    .then(res => res.text())
-    .then(text => {
-      if (text === "Redeemed") {
-        alert("Redemption submitted!");
-        window.location.reload();
-      } else {
-        alert("Error: " + text);
-      }
-    });
-}
+    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=${encodeURIComponent(contact)}`)
+      .then(res => res.text())
+      .then(text => {
+        if (text === "Redeemed") {
+          alert("Redemption submitted!");
+          loadCoins(); // ✅ Coin refresh
+          showScreen("mainScreen"); // ✅ Go back to rewards
+        } else {
+          alert("Error: " + text);
+        }
+      });
+  }
 
   function goBack() {
     showScreen("mainScreen");
@@ -176,7 +177,7 @@ function submitRedemption() {
       fetch(`${SCRIPT_URL}?action=add&name=${userName}&coins=${earned}`)
         .then(() => {
           alert(`You earned +${earned} coins`);
-          window.location.reload();
+          location.reload();
         });
     }, 3000);
   }
@@ -192,6 +193,6 @@ function submitRedemption() {
     }
   };
 </script>
-
+  
 </body>
 </html>
