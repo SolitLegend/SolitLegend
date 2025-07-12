@@ -2,70 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Solit Legend Rewards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #1e1e2f;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #1e1e2f, #2d2d4d);
       color: white;
+      overflow-x: hidden;
     }
     .screen {
       display: none;
-      padding: 20px;
       min-height: 100vh;
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      padding: 20px;
+      animation: fadeIn 0.6s ease-in-out;
     }
     .active { display: flex; }
     input, button {
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 10px;
       border: none;
+      font-size: 1rem;
     }
     button {
-      background-color: #ff4f5a;
+      background: #ff4f5a;
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #ff6a75;
     }
     .rewards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      gap: 20px;
+      margin-top: 30px;
+      width: 100%;
     }
     .reward-card {
-      background-color: #2e2e4d;
-      padding: 10px;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 12px;
       text-align: center;
       cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
     }
     .reward-card:hover {
-      background-color: #3c3c6e;
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.1);
     }
     .reward-card img {
       width: 80px;
       height: 80px;
+      margin-bottom: 10px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
 <body>
 
 <div class="screen active" id="loginScreen">
-  <h2>Welcome to Solit Legend Rewards</h2>
+  <h2>Welcome to <span style="color:#ff4f5a">Solit Legend Rewards</span></h2>
   <input type="text" id="username" placeholder="Enter your name" />
   <button onclick="startApp()">Start</button>
 </div>
 
 <div class="screen" id="mainScreen">
   <h2>Hello, <span id="displayName"></span>!</h2>
-  <div id="user-coins">Loading coins...</div>
+  <div id="user-coins" style="margin-top: 10px; font-weight: bold;">Loading coins...</div>
   <button onclick="watchAdAndEarn()">🎥 Watch & Earn</button>
   <div class="rewards-grid" id="rewardsGrid"></div>
 </div>
@@ -78,11 +94,14 @@
   <button onclick="goBack()">Go Back</button>
 </div>
 
+<audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx511ZTDJCAGz4PTrloQbMOVkAtJw8IwbzZl4gUJqsPG7v908GbF7AlBinDpuQ_L9ERrA/exec';
   let userName = '';
   let userCoins = 0;
   let selectedReward = null;
+  const clickSound = document.getElementById('clickSound');
 
   const rewards = [
     { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
@@ -102,6 +121,7 @@
     showScreen("mainScreen");
     loadCoins();
     loadRewards();
+    clickSound.play();
   }
 
   function showScreen(id) {
@@ -138,6 +158,7 @@
     selectedReward = reward;
     document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
     showScreen("redeemScreen");
+    clickSound.play();
   }
 
   function submitRedemption() {
@@ -149,8 +170,8 @@
       .then(text => {
         if (text === "Redeemed") {
           alert("Redemption submitted!");
-          loadCoins(); // ✅ Coin refresh
-          showScreen("mainScreen"); // ✅ Go back to rewards
+          loadCoins();
+          showScreen("mainScreen");
         } else {
           alert("Error: " + text);
         }
@@ -159,6 +180,7 @@
 
   function goBack() {
     showScreen("mainScreen");
+    clickSound.play();
   }
 
   function watchAdAndEarn() {
@@ -193,6 +215,6 @@
     }
   };
 </script>
-  
+
 </body>
 </html>
