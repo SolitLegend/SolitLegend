@@ -150,71 +150,55 @@
     });
   }
 
-  function tryRedeem(reward) {
-    if (userCoins < reward.coins) {
-      alert("Not enough coins!");
-      return;
-    }
-    selectedReward = reward;
-    document.getElementById("redeemTitle").innerText = `${reward.title} – ${reward.coins} Coins`;
-    showScreen("redeemScreen");
-    clickSound.play();
+function tryRedeem(reward) {
+  if (userCoins < reward.coins) {
+    alert("Not enough coins!");
+    return;
   }
 
-  function submitRedemption() {
-    const contact = document.getElementById("contactInfo").value.trim();
-    if (!contact) return alert("Enter contact info");
+  // Confirmation Step
+  document.body.innerHTML = `
+    <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+      <h2>🛒 Confirm Redemption</h2>
+      <p style="margin-top:10px;">Do you want to redeem <strong>${reward.title}</strong> for <strong>${reward.coins}</strong> coins?</p>
+      <div style="margin-top:20px;">
+        <button onclick="confirmRedemption()" style="margin-right:10px;padding:10px 20px;background:#4caf50;border:none;border-radius:8px;font-weight:bold;">✅ Confirm</button>
+        <button onclick="location.reload()" style="padding:10px 20px;background:#f44336;border:none;border-radius:8px;font-weight:bold;">❌ Cancel</button>
+      </div>
+    </div>
+  `;
 
-    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=${encodeURIComponent(contact)}`)
-      .then(res => res.text())
-      .then(text => {
-        if (text === "Redeemed") {
-          alert("Redemption submitted!");
-          loadCoins();
-          showScreen("mainScreen");
-        } else {
-          alert("Error: " + text);
-        }
-      });
-  }
+  // Store selected reward
+  selectedReward = reward;
+}
 
-  function goBack() {
-    showScreen("mainScreen");
-    clickSound.play();
-  }
+function confirmRedemption() {
+  fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&coins=${selectedReward.coins}&contact=manual`)
+    .then(res => res.text())
+    .then(text => {
+      if (text === "Redeemed") {
+        showFinalRedeemPage(selectedReward);
+      } else {
+        alert("Error: " + text);
+        location.reload();
+      }
+    });
+}
 
-  function watchAdAndEarn() {
-    const mainScreen = document.getElementById('mainScreen');
-    mainScreen.innerHTML = `
-      <h2>Loading Ad... Please Wait 3 Seconds</h2>
-      <iframe src="about:blank" style="width:300px;height:250px;border:none;margin-top:20px;"></iframe>
-      <p style="color:#ccc; font-size: 0.9em;">🎁 Sometimes surprise rewards appear here!</p>
-    `;
-    const script = document.createElement('script');
-    script.src = '//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js';
-    mainScreen.appendChild(script);
-
-    setTimeout(() => {
-      const earned = Math.floor(Math.random() * 2) + 1;
-      fetch(`${SCRIPT_URL}?action=add&name=${userName}&coins=${earned}`)
-        .then(() => {
-          alert(`You earned +${earned} coins`);
-          location.reload();
-        });
-    }, 3000);
-  }
-
-  window.onload = () => {
-    const stored = localStorage.getItem("solitName");
-    if (stored) {
-      userName = stored;
-      document.getElementById("displayName").innerText = userName;
-      showScreen("mainScreen");
-      loadCoins();
-      loadRewards();
-    }
-  };
-</script>
-
-</body>
-</html>
+function showFinalRedeemPage(reward) {
+  document.body.innerHTML = `
+    <div style="text-align:center;padding:30px;color:white;background:#1e1e2f;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+      <h2>✅ Redemption Confirmed!</h2>
+      <p>You redeemed: <strong>${reward.title}</strong></p>
+      <p>Coins used: <strong>${reward.coins}</strong></p>
+      <p>Please take a screenshot and send it to us:</p>
+      <ul style="list-style:none;padding:0;font-size:16px;">
+        <li>📱 WhatsApp: <b>03228076445</b></li>
+        <li>📧 Gmail: <b>solitlegend@gmail.com</b></li>
+        <li>💬 Discord: <b>legend031</b></li>
+      </ul>
+      <p>🔗 <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank" style="color:#00e676;">Join our WhatsApp Channel</a></p>
+      <button onclick="window.location.reload()" style="margin-top:20px;background:#ff4f5a;padding:10px 20px;border:none;border-radius:10px;color:white;cursor:pointer;">Back to App</button>
+    </div>
+  `;
+}
