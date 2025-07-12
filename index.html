@@ -79,7 +79,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhOsu2nZuzt73XLudYVeeE9oMh_bXoZeBKSkZCaH8aNORMvVKReG6PNU4HdkOVpEc5Ww/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx511ZTDJCAGz4PTrloQbMOVkAtJw8IwbzZl4gUJqsPG7v908GbF7AlBinDpuQ_L9ERrA/exec';
   let userName = '';
   let userCoins = 0;
   let selectedReward = null;
@@ -143,9 +143,7 @@
   function submitRedemption() {
     const contact = document.getElementById("contactInfo").value.trim();
     if (!contact) return alert("Enter contact info");
-
-    // Subtract coins
-    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${encodeURIComponent(contact)}`)
+    fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${selectedReward.title}&contact=${encodeURIComponent(contact)}`)
       .then(res => res.text())
       .then(() => {
         alert("Redemption submitted!");
