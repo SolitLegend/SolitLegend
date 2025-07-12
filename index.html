@@ -21,7 +21,7 @@
       flex-direction: column;
     }
     .active { display: flex; }
-    .login-screen input {
+    .login-screen input, .account-input {
       padding: 10px;
       border-radius: 8px;
       border: none;
@@ -38,27 +38,17 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .topbar {
+    .menu {
       position: absolute;
       top: 10px;
-      right: 20px;
+      right: 10px;
     }
-    .menu {
+    .menu select {
       background: #2e2e4d;
-      border-radius: 8px;
-      padding: 10px;
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 30px;
-    }
-    .menu button {
-      display: block;
-      margin: 5px 0;
-      background: none;
       color: white;
-      font-weight: normal;
-      text-align: left;
+      border-radius: 8px;
+      padding: 8px;
+      border: none;
     }
     .rewards-grid {
       display: grid;
@@ -83,21 +73,19 @@
       height: 80px;
       margin-bottom: 10px;
     }
-    #user-coins {
-      margin-bottom: 10px;
-      font-size: 1.1em;
-    }
+    #user-coins { margin-bottom: 10px; font-size: 1.1em; }
     a { color: #4ea9ff; text-decoration: underline; }
-    input[type="text"] {
-      padding: 8px;
-      width: 220px;
-      border-radius: 5px;
-      margin-top: 8px;
-      border: none;
-    }
   </style>
 </head>
 <body>
+  <div class="menu">
+    <select onchange="handleMenu(this.value)">
+      <option hidden>☰</option>
+      <option value="refer">Refer & Earn</option>
+      <option value="logout">Logout</option>
+    </select>
+  </div>
+
   <div class="screen login-screen active" id="loginScreen">
     <h2>Welcome to Solit Legend Rewards</h2>
     <input type="text" id="username" placeholder="Enter your name" />
@@ -105,13 +93,6 @@
   </div>
 
   <div class="screen main-screen" id="mainScreen">
-    <div class="topbar">
-      <button onclick="toggleMenu()">⋮</button>
-      <div class="menu" id="menu">
-        <button onclick="logout()">Logout</button>
-        <button onclick="copyReferral()">Refer & Earn</button>
-      </div>
-    </div>
     <h2>Hello, <span id="displayName"></span>!</h2>
     <div id="user-coins">Loading your coins...</div>
     <button onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
@@ -125,15 +106,22 @@
     <button onclick="backToMain()">❌ Cancel</button>
   </div>
 
-  <div class="screen payment-method" id="paymentScreen">
+  <div class="screen confirm-payment" id="paymentDetail">
     <h2>Select Payment Method</h2>
-    <button onclick="fillDetails('Easypaisa')">Easypaisa</button>
-    <button onclick="fillDetails('JazzCash')">JazzCash</button>
+    <button onclick="showAccountInput('Easypaisa')">Easypaisa</button>
+    <button onclick="showAccountInput('JazzCash')">JazzCash</button>
+  </div>
+
+  <div class="screen input-account" id="accountScreen">
+    <h2 id="payMethodTitle"></h2>
+    <input class="account-input" type="text" id="accName" placeholder="Enter Account Holder Name" />
+    <input class="account-input" type="text" id="accNumber" placeholder="Enter Number" />
+    <button onclick="submitPaymentDetails()">Submit</button>
   </div>
 
   <div class="screen success-screen" id="successScreen">
-    <h2>🎉 Congratulations! You have claimed the reward.</h2>
-    <p>Please take a screenshot of this screen and contact us via:</p>
+    <h2>🎉 Congratulations! You have successfully claimed the reward.</h2>
+    <p>Take a screenshot of this page and contact us:</p>
     <p><strong>WhatsApp:</strong> 093228076445</p>
     <p><strong>Discord:</strong> legend031</p>
     <p><strong>Email:</strong> solitlegend@gmail.com</p>
@@ -142,14 +130,25 @@
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5WQhywSaywPBxHJTUYdoHdqRoKLwUTxbTqOdc1xiHwcCnyM5DHWFM5wYuOUxpmCbs/exec';
-    let userName = '', userCoins = 0, selectedReward = null;
+    let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
+
+    const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
 
     const rewards = [
-      { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
-      { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
-      { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
-      { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png', isCash: true },
-      { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png', isCash: false }
+      { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
+      { title: 'Cash Rs.30', coins: 300, img: 'https://img.icons8.com/color/96/money.png' },
+      { title: 'Cash Rs.50', coins: 500, img: 'https://img.icons8.com/color/96/money.png' },
+      { title: 'Cash Rs.100', coins: 1000, img: 'https://img.icons8.com/color/96/money.png' },
+      { title: 'Minecraft Java Account', coins: 10000, img: 'https://img.icons8.com/color/96/minecraft-logo.png' },
+      { title: 'Free Fire 210 UC', coins: 4000, img: 'https://img.icons8.com/color/96/fire-element.png' },
+      { title: 'PUBG 60 UC', coins: 3500, img: 'https://img.icons8.com/color/96/helmet.png' },
+      { title: 'Roblox Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/roblox.png' },
+      { title: 'Steam Gift Card ($5)', coins: 6000, img: 'https://img.icons8.com/color/96/steam.png' },
+      { title: 'Mobile Load Rs. 100', coins: 1000, img: 'https://img.icons8.com/color/96/smartphone.png' },
+      { title: 'Monthly Data 2GB', coins: 2000, img: 'https://img.icons8.com/color/96/signal-bars.png' },
+      { title: 'Discord Nitro 1 Month', coins: 3000, img: 'https://img.icons8.com/color/96/discord-logo.png' },
+      { title: 'Spotify Premium 1 Month', coins: 3500, img: 'https://img.icons8.com/color/96/spotify--v1.png' },
+      { title: 'Netflix 1 Month', coins: 6000, img: 'https://img.icons8.com/color/96/netflix-desktop-app.png' }
     ];
 
     function startApp() {
@@ -163,35 +162,21 @@
       loadRewards();
     }
 
-    function toggleMenu() {
-      const menu = document.getElementById('menu');
-      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function logout() {
-      localStorage.removeItem('solitName');
-      location.reload();
-    }
-
-    function copyReferral() {
-      navigator.clipboard.writeText(`${window.location.href}?ref=${userName}`);
-      alert('Referral link copied!');
-    }
-
     function loadCoins() {
-      fetch(`${SCRIPT_URL}?name=${userName}&action=get`).then(res => res.text()).then(coin => {
-        userCoins = parseInt(coin);
-        document.getElementById('user-coins').innerText = `You have: ${userCoins} coins`;
-      });
+      fetch(`${SCRIPT_URL}?name=${userName}&action=get`)
+        .then(res => res.text())
+        .then(coin => {
+          userCoins = parseInt(coin);
+          document.getElementById('user-coins').innerText = `You have: ${userCoins} coins`;
+        });
     }
 
     function watchAdAndEarn() {
       const earned = Math.floor(Math.random() * 2) + 1;
-      fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`)
-        .then(() => {
-          alert(`You earned +${earned} coins!`);
-          loadCoins();
-        });
+      fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
+        alert(`You earned +${earned} coins!`);
+        loadCoins();
+      });
     }
 
     function loadRewards() {
@@ -214,8 +199,8 @@
 
     function confirmRedeem() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
-      if (selectedReward.isCash) {
-        showScreen('paymentScreen');
+      if (cashRewards.includes(selectedReward.title)) {
+        showScreen('paymentDetail');
       } else {
         fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
           showScreen('successScreen');
@@ -224,22 +209,39 @@
       }
     }
 
-    function fillDetails(method) {
-      const account = prompt(`Enter your ${method} account number:`);
-      if (!account) return;
-      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${method}: ${account}`).then(() => {
+    function showAccountInput(method) {
+      paymentMethod = method;
+      document.getElementById('payMethodTitle').innerText = `Enter ${method} Account Info`;
+      showScreen('accountScreen');
+    }
+
+    function submitPaymentDetails() {
+      const name = document.getElementById('accName').value.trim();
+      const number = document.getElementById('accNumber').value.trim();
+      if (!name || !number) return alert('Please enter all details');
+      const info = `${paymentMethod}: ${name} - ${number}`;
+      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${encodeURIComponent(info)}`).then(() => {
         showScreen('successScreen');
         loadCoins();
       });
     }
 
-    function backToMain() {
-      showScreen('mainScreen');
-    }
+    function backToMain() { showScreen('mainScreen'); }
 
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+    }
+
+    function handleMenu(value) {
+      if (value === 'logout') {
+        localStorage.removeItem('solitName');
+        location.reload();
+      } else if (value === 'refer') {
+        const link = `${location.origin}${location.pathname}?ref=${userName}`;
+        navigator.clipboard.writeText(link);
+        alert('Referral link copied!');
+      }
     }
 
     window.onload = () => {
@@ -250,12 +252,6 @@
         showScreen('mainScreen');
         loadCoins();
         loadRewards();
-      }
-
-      const params = new URLSearchParams(window.location.search);
-      const ref = params.get('ref');
-      if (ref) {
-        fetch(`${SCRIPT_URL}?name=${ref}&action=add&coins=50`);
       }
     };
   </script>
