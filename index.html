@@ -75,10 +75,6 @@
     }
     #user-coins { margin-bottom: 10px; font-size: 1.1em; }
     a { color: #4ea9ff; text-decoration: underline; }
-    #loadingScreen img {
-      max-width: 250px;
-      margin: 10px;
-    }
   </style>
   <script type="text/javascript" src="//pl27143039.profitableratecpm.com/21/e1/6b/21e16b106c76c93e961567c2d006aae0.js"></script>
 </head>
@@ -95,12 +91,6 @@
     <h2>Welcome to Solit Legend Rewards</h2>
     <input type="text" id="username" placeholder="Enter your name" />
     <button id="startButton">Start</button>
-  </div>
-
-  <div class="screen" id="loadingScreen">
-    <h2>Loading...</h2>
-    <img id="gif1" src="https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiaWVtamRlMDFlZzNvdnk4c2pvdGExc2Y1cnd2YWc0MXk0aDgyZ2RicCZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/hxERQNWQudqSF1iDnr/giphy.gif" alt="loading gif 1">
-    <img id="gif2" src="https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiOW83Nml0OWw1dmh3dnI4cWhjYTB5cTV2aGRsZ2d1N3h2d3NycTRxaSZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/fUQ4rhUZJYiQsas6WD/giphy.gif" alt="loading gif 2" style="display: none;">
   </div>
 
   <div class="screen main-screen" id="mainScreen">
@@ -139,9 +129,18 @@
     <button id="goBackButton">Go Back</button>
   </div>
 
+  <div class="screen loading-screen" id="loadingScreen">
+    <img id="loadingGif" src="" alt="Loading..." style="width: 200px; height: 200px;">
+    <h3>Loading, please wait...</h3>
+  </div>
+
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5WQhywSaywPBxHJTUYdoHdqRoKLwUTxbTqOdc1xiHwcCnyM5DHWFM5wYuOUxpmCbs/exec';
     let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
+    const gifs = [
+      'https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiaWVtamRlMDFlZzNvdnk4c2pvdGExc2Y1cnd2YWc0MXk0aDgyZ2RicCZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/hxERQNWQudqSF1iDnr/giphy.gif',
+      'https://media.giphy.com/media/v1.Y2lkPTgyYTE0OTNiOW83Nml0OWw1dmh3dnI4cWhjYTB5cTV2aGRsZ2d1N3h2d3NycTRxaSZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/fUQ4rhUZJYiQsas6WD/giphy.gif'
+    ];
 
     const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
 
@@ -179,12 +178,9 @@
       userName = name;
       localStorage.setItem('solitName', name);
       document.getElementById('displayName').innerText = name;
-      showScreen('loadingScreen');
-      setTimeout(() => {
-        showScreen('mainScreen');
-        loadCoins();
-        loadRewards();
-      }, 3000);
+      showScreen('mainScreen');
+      loadCoins();
+      loadRewards();
     }
 
     function loadCoins() {
@@ -237,7 +233,7 @@
       const number = document.getElementById('accNumber').value.trim();
       if (!name || !number) return alert('Please enter all details');
       const info = `${paymentMethod}: ${name} - ${number}`;
-      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${encodeURIComponent(info)}`).then(() => {
+      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${encodeURIComponent(info)}&method=${paymentMethod}&accname=${encodeURIComponent(name)}&accnum=${encodeURIComponent(number)}`).then(() => {
         showScreen('successScreen');
         loadCoins();
       });
@@ -252,6 +248,20 @@
         navigator.clipboard.writeText(link);
         alert('Referral link copied!');
       }
+    }
+
+    function watchAdAndEarn() {
+      const gif = gifs[Math.floor(Math.random() * gifs.length)];
+      document.getElementById('loadingGif').src = gif;
+      showScreen('loadingScreen');
+      setTimeout(() => {
+        const earned = Math.floor(Math.random() * 2) + 1;
+        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
+          alert(`You earned +${earned} coins!`);
+          loadCoins();
+          showScreen('mainScreen');
+        });
+      }, 3000);
     }
 
     document.getElementById('startButton').addEventListener('click', startApp);
