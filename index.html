@@ -105,6 +105,7 @@
     <h2>Hello, <span id="displayName"></span>!</h2>
     <div id="user-coins">Loading your coins...</div>
     <button onclick="watchAdAndEarn()">🎥 Watch & Earn Coins</button>
+    <button onclick="watchReelAndEarn()">📱 Watch Reels & Earn</button>
     <div class="rewards-grid" id="rewardsGrid"></div>
     <p style="margin-top: 30px;">📢 Join our <a href="https://whatsapp.com/channel/0029VbAnDs1Fsn0WgNbrMl01" target="_blank">WhatsApp Channel</a> for updates and giveaways!</p>
   </div>
@@ -282,22 +283,26 @@
       }
     };
 
-    function watchAdAndEarn() {
-      const gifs = [
-        'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
-        'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
-      ];
-      const gif = gifs[Math.floor(Math.random() * gifs.length)];
-      document.getElementById('loadingGif').src = gif;
-      showScreen('loadingScreen');
-      setTimeout(() => {
-        const earned = Math.floor(Math.random() * 2) + 1;
-        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
-          alert(`You earned +${earned} coins!`);
-          backToMain();
-        });
-      }, 3000);
-    }
-  </script>
-</body>
-</html>
+    function watchReelAndEarn() {
+  const reels = [
+    'https://youtube.com/shorts/dU9_Q3BYC44?si=Hnpj1WBTge8dgFLQ',
+    'https://youtube.com/shorts/YLHpQ0XUks8?si=3b_9Jv721Xba_KJz',
+    'https://youtube.com/shorts/uKzFEXgLQj0?si=o9aofuHxT-_dsQrI'
+  ];
+  const gifs = [
+    'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
+    'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
+  ];
+  const gif = gifs[Math.floor(Math.random() * gifs.length)];
+  document.getElementById('loadingGif').src = gif;
+  showScreen('loadingScreen');
+
+  const randomReel = reels[Math.floor(Math.random() * reels.length)];
+  setTimeout(() => {
+    window.open(randomReel, '_blank');
+    fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=2`).then(() => {
+      alert(`+2 coins earned for watching a reel!`);
+      backToMain();
+    });
+  }, 3000);
+}
