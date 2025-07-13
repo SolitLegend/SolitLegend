@@ -147,10 +147,10 @@
     let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
 
     const adLinks = {
-      'Cash Rs.10': 'https://shrinkme.ink/PAWeVW2',
-      'Cash Rs.30': 'https://shrinkme.ink/0VzKkarF',
-      'Cash Rs.50': 'https://shrinkme.ink/78wZ',
-      'Cash Rs.100': 'https://shrinkme.ink/nXPv1'
+      'Cash Rs.10': 'https://shrinkme.io/PAWeVW2',
+      'Cash Rs.30': 'https://shrinkme.io/0VzKkarF',
+      'Cash Rs.50': 'https://shrinkme.io/78wZ',
+      'Cash Rs.100': 'https://shrinkme.io/nXPv1'
     };
 
     const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
@@ -268,11 +268,6 @@
     }
 
     function watchReelAndEarn() {
-      const reels = [
-        'https://youtube.com/shorts/dU9_Q3BYC44?si=Hnpj1WBTge8dgFLQ',
-        'https://youtube.com/shorts/YLHpQ0XUks8?si=3b_9Jv721Xba_KJz',
-        'https://youtube.com/shorts/uKzFEXgLQj0?si=o9aofuHxT-_dsQrI'
-      ];
       const gifs = [
         'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
         'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
@@ -281,17 +276,44 @@
       document.getElementById('loadingGif').src = gif;
       showScreen('loadingScreen');
 
-      const randomReel = reels[Math.floor(Math.random() * reels.length)];
-      setTimeout(() => {
-        window.open(randomReel, '_blank');
-        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=2`).then(() => {
-          alert(`+2 coins earned for watching a reel!`);
-          backToMain();
-        });
-      }, 3000);
+      const reels = [
+        'assets/reels/reel1.mp4',
+        'assets/reels/reel2.mp4',
+        'assets/reels/reel3.mp4'
+      ];
+
+      let current = 0;
+
+      function playNextReel() {
+        if (current < reels.length) {
+          const videoWindow = window.open('', '_blank');
+          videoWindow.document.write(`
+            <video id="reel" width="100%" height="100%" controls autoplay>
+              <source src="${reels[current]}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <script>
+              const video = document.getElementById('reel');
+              video.onended = () => window.close();
+            </script>
+          `);
+          current++;
+          setTimeout(playNextReel, 15000);
+        } else {
+          const shrinkLink = "https://shrinkme.io/your-link-here";
+          window.open(shrinkLink, "_blank");
+          setTimeout(() => {
+            fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=1`).then(() => {
+              alert("+1 coin earned for watching reels and ad!");
+              backToMain();
+            });
+          }, 10000);
+        }
+      }
+
+      setTimeout(playNextReel, 3000);
     }
 
-    // ✅ Fix applied here
     window.onload = () => {
       const storedName = localStorage.getItem('solitName');
       if (storedName) {
