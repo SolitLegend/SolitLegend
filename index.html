@@ -147,6 +147,12 @@
     let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
 
     const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
+    const adLinks = {
+      'Cash Rs.10': 'https://shrinke.me/reward10',
+      'Cash Rs.30': 'https://shrinke.me/reward30',
+      'Cash Rs.50': 'https://shrinke.me/reward50',
+      'Cash Rs.100': 'https://shrinke.me/reward100'
+    };
 
     const rewards = [
       { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
@@ -217,7 +223,14 @@
     function confirmRedeem() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
       if (cashRewards.includes(selectedReward.title)) {
-        showScreen('paymentDetail');
+        const adUrl = adLinks[selectedReward.title];
+        if (!adUrl) return alert('Ad link not found!');
+        userCoins -= selectedReward.coins;
+        fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+          window.open(adUrl, '_blank');
+          showScreen('paymentDetail');
+          loadCoins();
+        });
       } else {
         fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
           showScreen('successScreen');
