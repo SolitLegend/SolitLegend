@@ -111,7 +111,7 @@
 
   <div class="screen reward-detail" id="rewardDetail">
     <h2 id="rewardTitle"></h2>
-    <button onclick="confirmRedeem()">✅ Confirm</button>
+    <button onclick="redirectToAdThenPay()">✅ Confirm</button>
     <button onclick="backToMain()">❌ Cancel</button>
   </div>
 
@@ -146,13 +146,14 @@
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5WQhywSaywPBxHJTUYdoHdqRoKLwUTxbTqOdc1xiHwcCnyM5DHWFM5wYuOUxpmCbs/exec';
     let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
 
-    const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
     const adLinks = {
-      'Cash Rs.10': 'https://shrinke.me/reward10',
-      'Cash Rs.30': 'https://shrinke.me/reward30',
-      'Cash Rs.50': 'https://shrinke.me/reward50',
-      'Cash Rs.100': 'https://shrinke.me/reward100'
+      'Cash Rs.10': 'https://shrinkme.ink/PAWeVW2',
+      'Cash Rs.30': 'https://shrinkme.ink/0VzKkarF',
+      'Cash Rs.50': 'https://shrinkme.ink/78wZ',
+      'Cash Rs.100': 'https://shrinkme.ink/nXPv1'
     };
+
+    const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
 
     const rewards = [
       { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
@@ -220,23 +221,23 @@
       showScreen('rewardDetail');
     }
 
-    function confirmRedeem() {
+    function redirectToAdThenPay() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
-      if (cashRewards.includes(selectedReward.title)) {
-        const adUrl = adLinks[selectedReward.title];
-        if (!adUrl) return alert('Ad link not found!');
-        userCoins -= selectedReward.coins;
-        fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
-          window.open(adUrl, '_blank');
-          showScreen('paymentDetail');
-          loadCoins();
+
+      userCoins -= selectedReward.coins;
+      fetch(`${SCRIPT_URL}?name=${userName}&action=subtract&coins=${selectedReward.coins}`)
+        .then(() => {
+          if (cashRewards.includes(selectedReward.title)) {
+            const adLink = adLinks[selectedReward.title];
+            window.open(adLink, '_blank');
+            setTimeout(() => showScreen('paymentDetail'), 2000);
+          } else {
+            fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+              showScreen('successScreen');
+              loadCoins();
+            });
+          }
         });
-      } else {
-        fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
-          showScreen('successScreen');
-          loadCoins();
-        });
-      }
     }
 
     function showAccountInput(method) {
