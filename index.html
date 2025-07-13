@@ -52,7 +52,7 @@
     }
     .rewards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       width: 100%;
     }
@@ -75,6 +75,7 @@
     }
     #user-coins { margin-bottom: 10px; font-size: 1.1em; }
     a { color: #4ea9ff; text-decoration: underline; }
+
     .loading-screen {
       background: linear-gradient(135deg, orange, yellow, blue, red);
       color: black;
@@ -97,7 +98,7 @@
     <h2>Welcome to Solit Legend Rewards</h2>
     <img src="https://media.giphy.com/media/dyjrpqaUVqCELGuQVr/giphy.gif" alt="login gif" style="width: 200px; border-radius: 12px; margin-top: 15px;" />
     <input type="text" id="username" placeholder="Enter your name" />
-    <button onclick="startApp()">Start</button>
+    <button id="startButton">Start</button>
   </div>
 
   <div class="screen main-screen" id="mainScreen">
@@ -110,13 +111,49 @@
 
   <div class="screen reward-detail" id="rewardDetail">
     <h2 id="rewardTitle"></h2>
-    <button onclick="showAdThenRedeem()">✅ Confirm & Show Ad</button>
+    <button onclick="redirectToAdThenPay()">✅ Confirm</button>
     <button onclick="backToMain()">❌ Cancel</button>
+  </div>
+
+  <div class="screen confirm-payment" id="paymentDetail">
+    <h2>Select Payment Method</h2>
+    <button onclick="showAccountInput('Easypaisa')">Easypaisa</button>
+    <button onclick="showAccountInput('JazzCash')">JazzCash</button>
+  </div>
+
+  <div class="screen input-account" id="accountScreen">
+    <h2 id="payMethodTitle"></h2>
+    <input class="account-input" type="text" id="accName" placeholder="Enter Account Holder Name" />
+    <input class="account-input" type="text" id="accNumber" placeholder="Enter Number" />
+    <button onclick="submitPaymentDetails()">Submit</button>
+  </div>
+
+  <div class="screen success-screen" id="successScreen">
+    <h2>🎉 Congratulations! You have successfully claimed the reward.</h2>
+    <p>Take a screenshot of this page and contact us:</p>
+    <p><strong>WhatsApp:</strong> 093228076445</p>
+    <p><strong>Discord:</strong> legend031</p>
+    <p><strong>Email:</strong> solitlegend@gmail.com</p>
+    <button id="goBackButton">Go Back</button>
+  </div>
+
+  <div class="screen loading-screen" id="loadingScreen">
+    <img id="loadingGif" src="" alt="Loading..." style="width: 200px; height: 200px; border-radius: 16px; margin-bottom: 20px;" />
+    <div>Loading...</div>
   </div>
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5WQhywSaywPBxHJTUYdoHdqRoKLwUTxbTqOdc1xiHwcCnyM5DHWFM5wYuOUxpmCbs/exec';
-    let userName = '', userCoins = 0, selectedReward = null;
+    let userName = '', userCoins = 0, selectedReward = null, paymentMethod = '';
+
+    const adLinks = {
+      'Cash Rs.10': 'https://shrinkme.ink/PAWeVW2',
+      'Cash Rs.30': 'https://shrinkme.ink/0VzKkarF',
+      'Cash Rs.50': 'https://shrinkme.ink/78wZ',
+      'Cash Rs.100': 'https://shrinkme.ink/nXPv1'
+    };
+
+    const cashRewards = ['Cash Rs.10', 'Cash Rs.30', 'Cash Rs.50', 'Cash Rs.100'];
 
     const rewards = [
       { title: 'Cash Rs.10', coins: 100, img: 'https://img.icons8.com/color/96/money.png' },
@@ -138,6 +175,12 @@
     function showScreen(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+    }
+
+    function backToMain() {
+      showScreen('mainScreen');
+      loadCoins();
+      loadRewards();
     }
 
     function startApp() {
@@ -167,33 +210,51 @@
         const div = document.createElement('div');
         div.className = 'reward-card';
         div.innerHTML = `<img src="${r.img}" alt="icon"><h3>${r.title}</h3><p>${r.coins} Coins</p>`;
-        div.onclick = () => showRewardDetail(r);
+        div.onclick = () => showDetail(r);
         grid.appendChild(div);
       });
     }
 
-    function showRewardDetail(reward) {
+    function showDetail(reward) {
       selectedReward = reward;
       document.getElementById('rewardTitle').innerText = `${reward.title} – ${reward.coins} Coins`;
       showScreen('rewardDetail');
     }
 
-    function showAdThenRedeem() {
+    function redirectToAdThenPay() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
-      const adWindow = window.open('https://www.google.com', '_blank');
-      setTimeout(() => {
-        fetch(`${SCRIPT_URL}?name=${userName}&action=subtract&coins=${selectedReward.coins}`)
-          .then(() => {
-            alert(`You redeemed: ${selectedReward.title}`);
-            backToMain();
-          });
-      }, 5000);
+
+      userCoins -= selectedReward.coins;
+      fetch(`${SCRIPT_URL}?name=${userName}&action=subtract&coins=${selectedReward.coins}`)
+        .then(() => {
+          if (cashRewards.includes(selectedReward.title)) {
+            const adLink = adLinks[selectedReward.title];
+            window.open(adLink, '_blank');
+            setTimeout(() => showScreen('paymentDetail'), 2000);
+          } else {
+            fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=web`).then(() => {
+              showScreen('successScreen');
+              loadCoins();
+            });
+          }
+        });
     }
 
-    function backToMain() {
-      showScreen('mainScreen');
-      loadCoins();
-      loadRewards();
+    function showAccountInput(method) {
+      paymentMethod = method;
+      document.getElementById('payMethodTitle').innerText = `Enter ${method} Account Info`;
+      showScreen('accountScreen');
+    }
+
+    function submitPaymentDetails() {
+      const name = document.getElementById('accName').value.trim();
+      const number = document.getElementById('accNumber').value.trim();
+      if (!name || !number) return alert('Please enter all details');
+      const info = `${paymentMethod}: ${name} - ${number}`;
+      fetch(`${SCRIPT_URL}?action=redeem&name=${userName}&reward=${encodeURIComponent(selectedReward.title)}&coins=${selectedReward.coins}&contact=${encodeURIComponent(info)}`).then(() => {
+        showScreen('successScreen');
+        loadCoins();
+      });
     }
 
     function handleMenu(value) {
@@ -207,15 +268,8 @@
       }
     }
 
-    function watchAdAndEarn() {
-      const adWindow = window.open('https://www.google.com', '_blank');
-      setTimeout(() => {
-        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=2`).then(() => {
-          loadCoins();
-          alert("You earned 2 coins!");
-        });
-      }, 5000);
-    }
+    document.getElementById('startButton').addEventListener('click', startApp);
+    document.getElementById('goBackButton').addEventListener('click', backToMain);
 
     window.onload = () => {
       const storedName = localStorage.getItem('solitName');
@@ -227,6 +281,23 @@
         loadRewards();
       }
     };
+
+    function watchAdAndEarn() {
+      const gifs = [
+        'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
+        'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
+      ];
+      const gif = gifs[Math.floor(Math.random() * gifs.length)];
+      document.getElementById('loadingGif').src = gif;
+      showScreen('loadingScreen');
+      setTimeout(() => {
+        const earned = Math.floor(Math.random() * 2) + 1;
+        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
+          alert(`You earned +${earned} coins!`);
+          backToMain();
+        });
+      }, 3000);
+    }
   </script>
 </body>
 </html>
