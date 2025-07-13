@@ -75,7 +75,6 @@
     }
     #user-coins { margin-bottom: 10px; font-size: 1.1em; }
     a { color: #4ea9ff; text-decoration: underline; }
-
     .loading-screen {
       background: linear-gradient(135deg, orange, yellow, blue, red);
       color: black;
@@ -224,7 +223,6 @@
 
     function redirectToAdThenPay() {
       if (userCoins < selectedReward.coins) return alert('Not enough coins');
-
       userCoins -= selectedReward.coins;
       fetch(`${SCRIPT_URL}?name=${userName}&action=subtract&coins=${selectedReward.coins}`)
         .then(() => {
@@ -269,9 +267,31 @@
       }
     }
 
-    document.getElementById('startButton').addEventListener('click', startApp);
-    document.getElementById('goBackButton').addEventListener('click', backToMain);
+    function watchReelAndEarn() {
+      const reels = [
+        'https://youtube.com/shorts/dU9_Q3BYC44?si=Hnpj1WBTge8dgFLQ',
+        'https://youtube.com/shorts/YLHpQ0XUks8?si=3b_9Jv721Xba_KJz',
+        'https://youtube.com/shorts/uKzFEXgLQj0?si=o9aofuHxT-_dsQrI'
+      ];
+      const gifs = [
+        'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
+        'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
+      ];
+      const gif = gifs[Math.floor(Math.random() * gifs.length)];
+      document.getElementById('loadingGif').src = gif;
+      showScreen('loadingScreen');
 
+      const randomReel = reels[Math.floor(Math.random() * reels.length)];
+      setTimeout(() => {
+        window.open(randomReel, '_blank');
+        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=2`).then(() => {
+          alert(`+2 coins earned for watching a reel!`);
+          backToMain();
+        });
+      }, 3000);
+    }
+
+    // ✅ Fix applied here
     window.onload = () => {
       const storedName = localStorage.getItem('solitName');
       if (storedName) {
@@ -281,28 +301,10 @@
         loadCoins();
         loadRewards();
       }
+
+      document.getElementById('startButton').addEventListener('click', startApp);
+      document.getElementById('goBackButton').addEventListener('click', backToMain);
     };
-
-    function watchReelAndEarn() {
-  const reels = [
-    'https://youtube.com/shorts/dU9_Q3BYC44?si=Hnpj1WBTge8dgFLQ',
-    'https://youtube.com/shorts/YLHpQ0XUks8?si=3b_9Jv721Xba_KJz',
-    'https://youtube.com/shorts/uKzFEXgLQj0?si=o9aofuHxT-_dsQrI'
-  ];
-  const gifs = [
-    'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
-    'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
-  ];
-  const gif = gifs[Math.floor(Math.random() * gifs.length)];
-  document.getElementById('loadingGif').src = gif;
-  showScreen('loadingScreen');
-
-  const randomReel = reels[Math.floor(Math.random() * reels.length)];
-  setTimeout(() => {
-    window.open(randomReel, '_blank');
-    fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=2`).then(() => {
-      alert(`+2 coins earned for watching a reel!`);
-      backToMain();
-    });
-  }, 3000);
-}
+  </script>
+</body>
+</html>
