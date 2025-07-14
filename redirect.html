@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Redirecting...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="refresh" content="2;url=" id="redirectMeta">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -15,6 +14,7 @@
       background: #1e1e2f;
       color: white;
       text-align: center;
+      flex-direction: column;
     }
     h2 {
       margin-bottom: 10px;
@@ -22,20 +22,20 @@
   </style>
 </head>
 <body>
-  <div>
-    <h2>Redirecting to your reward...</h2>
-    <p>Please wait a moment...</p>
-  </div>
+  <h2>Redirecting to your reward...</h2>
+  <p>Please wait a moment...</p>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const target = params.get("target");
+
     if (target) {
-      document.getElementById("redirectMeta").setAttribute("content", `2;url=${target}`);
+      setTimeout(() => {
+        window.location.href = target;
+      }, 2000); // 2 seconds delay
     } else {
       document.body.innerHTML = "<h2>Invalid or missing target URL</h2>";
     }
   </script>
 </body>
 </html>
-
