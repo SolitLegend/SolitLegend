@@ -284,21 +284,41 @@
     };
 
        function watchAdAndEarn() {
-      const gifs = [
-        'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
-        'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
-      ];
-      const gif = gifs[Math.floor(Math.random() * gifs.length)];
-      document.getElementById('loadingGif').src = gif;
-      showScreen('loadingScreen');
-      setTimeout(() => {
-        const earned = Math.floor(Math.random() * 2) + 1;
-        fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
-          alert(`You earned +${earned} coins!`);
-          backToMain();
-        });
-      }, 3000);
+  if (!userName) return alert("User not logged in!");
+
+  const today = new Date().toISOString().slice(0, 10); // e.g., 2025-07-16
+  const limitKey = `coins_${userName}_${today}`;
+  const currentCoins = parseInt(localStorage.getItem(limitKey)) || 0;
+
+  if (currentCoins >= 500) {
+    alert("You've reached the 500 coin limit for today!");
+    return;
+  }
+
+  const gifs = [
+    'https://media.giphy.com/media/hxERQNWQudqSF1iDnr/giphy.gif',
+    'https://media.giphy.com/media/fUQ4rhUZJYiQsas6WD/giphy.gif'
+  ];
+  const gif = gifs[Math.floor(Math.random() * gifs.length)];
+  document.getElementById('loadingGif').src = gif;
+  showScreen('loadingScreen');
+
+  setTimeout(() => {
+    const earned = Math.floor(Math.random() * 2) + 1;
+    const newTotal = currentCoins + earned;
+    if (newTotal > 500) {
+      alert(`You can only earn ${500 - currentCoins} more coins today.`);
+      backToMain();
+      return;
     }
+
+    fetch(`${SCRIPT_URL}?name=${userName}&action=add&coins=${earned}`).then(() => {
+      localStorage.setItem(limitKey, newTotal);
+      alert(`You earned +${earned} coins!`);
+      backToMain();
+    });
+  }, 3000);
+}
 
     // ✅ Flappy Game Button Function
     function playFlappyGame() {
