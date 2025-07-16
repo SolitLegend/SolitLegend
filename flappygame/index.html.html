@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Coin Game - Solit Legend</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #70c5ce;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: url('https://i.postimg.cc/4dmVNVWW/oFmrtZR.jpg') repeat-x;
+      background-size: cover;
+    }
+    #wallet {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 18px;
+      z-index: 2;
+    }
+    #volumeControl {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 2;
+    }
+    #volumeSlider {
+      width: 100px;
+    }
+    #gameOverMenu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      color: #fff;
+      display: none;
+      z-index: 3;
+    }
+    #gameOverMenu button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="wallet">Coins: <span id="coins">0</span></div>
+  <div id="volumeControl">
+    Music Volume: <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+  </div>
+  <canvas id="game" width="480" height="640"></canvas>
+  <div id="gameOverMenu">
+    <h2>Game Over</h2>
+    <button onclick="restartGame()">Restart</button>
+    <button onclick="goHome()">Go Back Home</button>
+  </div>
+  <audio id="coinSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+  <audio id="bgMusic" src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3" autoplay loop></audio>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const coinSound = document.getElementById("coinSound");
+    const bgMusic = document.getElementById("bgMusic");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const gameOverMenu = document.getElementById("gameOverMenu");
+
+    const pipeWidth = 60;
+    const pipeGap = 150;
+    const gravity = 0.4;
+    const jump = -7;
+    const pipeSpeed = 2;
+
+    let totalCoins = parseInt(localStorage.getItem('solitCoins')) || 0;
+    let sessionCoins = 0;
+
+    let bird = { x: 80, y: 250, width: 34, height: 34, velocity: 0 };
+    let pipes = [];
+    let coin = null;
+    let pipeCounter = 0;
+    let isGameOver = false;
+
+    const birdEmoji = "🐦";
+
+    volumeSlider.addEventListener("input", () => {
+      bgMusic.volume = volumeSlider.value;
+    });
+    bgMusic.volume = volumeSlider.value;
+
+    function drawBird() {
+      ctx.save();
+      ctx.translate(bird.x + bird.width, bird.y);
+      ctx.scale(-1, 1);
+      ctx.font = `${bird.width}px serif`;
+      ctx.fillText(birdEmoji, 0, bird.height);
+      ctx.restore();
+    }
+
+    function drawPipes() {
+      ctx.fillStyle = 'purple';
+      pipes.forEach(pipe => {
+        ctx.fillRect(pipe.x, 0, pipeWidth, pipe.top);
+        ctx.fillRect(pipe.x, pipe.top + pipeGap, pipeWidth, canvas.height);
+      });
+    }
+
+    function drawCoin() {
+  if (coin) {
+    ctx.beginPath();
+    ctx.fillStyle = 'gold';
+    ctx.arc(coin.x, coin.y, 16, 0, Math.PI * 2); // Bigger coin
+    ctx.fill();
+  }
+}
+
+    function updateGame() {
+      if (isGameOver) return;
+
+      bird.velocity += gravity;
+      bird.y += bird.velocity;
+
+      if (bird.y + bird.height > canvas.height || bird.y < 0) {
+        return endGame();
+      }
+
+      if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
+  let top = Math.floor(Math.random() * 250) + 30;
+  pipes.push({ x: canvas.width, top });
+
+  // ➤ Insert coin when game starts
+  if (pipeCounter === 0 || pipeCounter % 4 === 0) {
+    coin = {
+      x: canvas.width + 60,
+      y: top + pipeGap / 2
+    };
+  }
+
+  pipeCounter++;
+}
+
+      pipes.forEach((pipe, index) => {
+        pipe.x -= pipeSpeed;
+
+        if (pipe.x + pipeWidth < 0) {
+          pipes.splice(index, 1);
+        }
+
+        if (
+          bird.x < pipe.x + pipeWidth &&
+          bird.x + bird.width > pipe.x &&
+          (bird.y < pipe.top || bird.y + bird.height > pipe.top + pipeGap)
+        ) {
+          endGame();
+        }
+      });
+
+      if (coin) {
+        coin.x -= pipeSpeed;
+
+        if (
+          bird.x < coin.x + 12 &&
+          bird.x + bird.width > coin.x - 12 &&
+          bird.y < coin.y + 12 &&
+          bird.y + bird.height > coin.y - 12
+        ) {
+          sessionCoins++;
+          document.getElementById("coins").innerText = totalCoins + sessionCoins;
+          coinSound.play();
+          coin = null;
+        }
+
+        if (coin && coin.x < -20) {
+          coin = null;
+        }
+      }
+    }
+
+    function endGame() {
+      isGameOver = true;
+      gameOverMenu.style.display = "block";
+    }
+
+    function restartGame() {
+      totalCoins += sessionCoins;
+      localStorage.setItem("solitCoins", totalCoins);
+      sessionCoins = 0;
+      document.getElementById("coins").innerText = totalCoins;
+      bird.y = 250;
+      bird.velocity = 0;
+      pipes = [];
+      coin = null;
+      pipeCounter = 0;
+      isGameOver = false;
+      gameOverMenu.style.display = "none";
+    }
+
+    function goHome() {
+      window.location.href = "/";
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPipes();
+      drawCoin();
+      drawBird();
+    }
+
+    function loop() {
+      updateGame();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    document.addEventListener("keydown", () => bird.velocity = jump);
+    document.addEventListener("mousedown", () => bird.velocity = jump);
+    document.addEventListener("touchstart", () => bird.velocity = jump);
+
+    document.getElementById("coins").innerText = totalCoins;
+    loop();
+  </script>
+</body>
+</html>
